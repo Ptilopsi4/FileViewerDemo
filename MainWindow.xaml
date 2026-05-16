@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="FileViewerDemo.MainWindow"
+    x:Name="RootWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FileViewerDemo"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:FileViewerDemo.Models"
+    xmlns:conv="using:FileViewerDemo.Converters"
+    mc:Ignorable="d"
+    Title="文件浏览器">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="RootGrid" Loaded="RootGrid_Loaded">
+        <Grid.Resources>
+            <conv:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            
+            <Style x:Key="ToolbarButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Margin" Value="2,0" />
+                <Setter Property="Padding" Value="8,6" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+            <Style x:Key="ToolbarToggleButtonStyle" TargetType="ToggleButton">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Margin" Value="2,0" />
+                <Setter Property="Padding" Value="8,6" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" x:Name="AppTitleBar" ColumnDefinitions="Auto,*,Auto,Auto" Padding="8,8,0,8" VerticalAlignment="Top" Height="48">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="0,0,16,0" VerticalAlignment="Center">
+                <Button Click="BackButton_Click" IsEnabled="{Binding CanGoBack}" Style="{StaticResource ToolbarButtonStyle}" ToolTipService.ToolTip="后退">
+                    <SymbolIcon Symbol="Back" />
+                </Button>
+                <Button Click="ForwardButton_Click" IsEnabled="{Binding CanGoForward}" Style="{StaticResource ToolbarButtonStyle}" ToolTipService.ToolTip="前进">
+                    <SymbolIcon Symbol="Forward" />
+                </Button>
+                <Button Click="UpButton_Click" IsEnabled="{Binding CanGoUp}" Style="{StaticResource ToolbarButtonStyle}" ToolTipService.ToolTip="向上">
+                    <SymbolIcon Symbol="Up" />
+                </Button>
+            </StackPanel>
+
+            <BreadcrumbBar Grid.Column="1" x:Name="PathBreadcrumb" ItemsSource="{Binding Breadcrumbs}" ItemClicked="BreadcrumbBar_ItemClicked" VerticalAlignment="Center" Margin="0,0,16,0" />
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="0,0,16,0">
+                <Button Click="RefreshButton_Click" Style="{StaticResource ToolbarButtonStyle}" ToolTipService.ToolTip="刷新">
+                    <SymbolIcon Symbol="Refresh" />
+                </Button>
+                <ToggleButton x:Name="ViewToggle" IsChecked="{Binding IsGridView, Mode=TwoWay}" Style="{StaticResource ToolbarToggleButtonStyle}" ToolTipService.ToolTip="切换视图">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <SymbolIcon Symbol="List" Visibility="{Binding IsGridView, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                        <SymbolIcon Symbol="ViewAll" Visibility="{Binding IsGridView, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </StackPanel>
+                </ToggleButton>
+            </StackPanel>
+            
+            <!-- Placeholder for Window Caption Buttons -->
+            <Grid Grid.Column="3" Width="138" />
+        </Grid>
+
+        <NavigationView Grid.Row="1" 
+                        x:Name="ShellNavView" 
+                        PaneDisplayMode="Left" 
+                        PaneTitle="此电脑" 
+                        IsSettingsVisible="True" 
+                        IsBackButtonVisible="Collapsed" 
+                        SelectionChanged="NavView_SelectionChanged" 
+                        MenuItemsSource="{Binding Drives}">
+
+            <NavigationView.MenuItemTemplateSelector>
+                <local:NavMenuItemTemplateSelector>
+                    <local:NavMenuItemTemplateSelector.ItemTemplate>
+                        <DataTemplate x:DataType="models:DriveItem">
+                            <NavigationViewItem Content="{x:Bind DisplayName}" Tag="{x:Bind Path}">
+                                <NavigationViewItem.Icon>
+                                    <SymbolIcon Symbol="{x:Bind Icon}" />
+                                </NavigationViewItem.Icon>
+                            </NavigationViewItem>
+                        </DataTemplate>
+                    </local:NavMenuItemTemplateSelector.ItemTemplate>
+                    <local:NavMenuItemTemplateSelector.HeaderTemplate>
+                        <DataTemplate x:DataType="models:DriveItem">
+                            <NavigationViewItemHeader Content="{x:Bind DisplayName}" />
+                        </DataTemplate>
+                    </local:NavMenuItemTemplateSelector.HeaderTemplate>
+                    <local:NavMenuItemTemplateSelector.FallbackTemplate>
+                        <DataTemplate>
+                            <ContentPresenter Content="{Binding}" />
+                        </DataTemplate>
+                    </local:NavMenuItemTemplateSelector.FallbackTemplate>
+                </local:NavMenuItemTemplateSelector>
+            </NavigationView.MenuItemTemplateSelector>
+
+            <NavigationView.Content>
+                <Grid x:Name="ShellContentGrid">
+                    <Grid>
+                        <ListView x:Name="DetailsList"
+                                  ItemsSource="{Binding Items}"
+                                  IsItemClickEnabled="False"
+                                  SelectionMode="Extended"
+                                  DoubleTapped="ItemsList_DoubleTapped"
+                                  Visibility="{Binding IsGridView, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsStackPanel ItemsUpdatingScrollMode="KeepItemsInView" />
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:ExplorerItem">
+                                    <Grid ColumnDefinitions="40,*,160,120,160" Padding="8">
+                                        <Grid Width="28" Height="28">
+                                            <SymbolIcon Symbol="{x:Bind IconSymbol}" />
+                                            <Image Source="{x:Bind Thumbnail, Mode=OneWay}" Stretch="Uniform" />
+                                        </Grid>
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="12,0,0,0" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind DateDisplay}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="3" Text="{x:Bind SizeDisplay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="4" Text="{x:Bind TypeDescription}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <GridView x:Name="TilesView"
+                                  ItemsSource="{Binding Items}"
+                                  SelectionMode="Extended"
+                                  IsItemClickEnabled="False"
+                                  DoubleTapped="ItemsGrid_DoubleTapped"
+                                  Visibility="{Binding IsGridView, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemTemplate>
+                                <DataTemplate x:DataType="models:ExplorerItem">
+                                    <StackPanel Width="140" Height="150" Padding="12" Spacing="8" HorizontalAlignment="Stretch">
+                                        <Grid Width="64" Height="64" HorizontalAlignment="Center">
+                                            <SymbolIcon Symbol="{x:Bind IconSymbol}" RenderTransformOrigin="0.5,0.5">
+                                                <SymbolIcon.RenderTransform>
+                                                    <ScaleTransform ScaleX="2" ScaleY="2" />
+                                                </SymbolIcon.RenderTransform>
+                                            </SymbolIcon>
+                                            <Image Source="{x:Bind Thumbnail, Mode=OneWay}" Stretch="Uniform" />
+                                        </Grid>
+                                        <TextBlock Text="{x:Bind Name}" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="WordEllipsis" MaxLines="2" />
+                                        <TextBlock Text="{x:Bind TypeDescription}" FontSize="12" Opacity="0.8" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridView.ItemTemplate>
+                        </GridView>
+                    </Grid>
+
+                    <Grid Background="#0F000000" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" IsHitTestVisible="True">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                            <ProgressRing IsActive="True" Width="48" Height="48" />
+                            <TextBlock Text="正在加载..." />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </NavigationView.Content>
+        </NavigationView>
+    </Grid>
+</Window>

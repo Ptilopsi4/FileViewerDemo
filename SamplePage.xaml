@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="FileViewerDemo.SamplePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FileViewerDemo"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:files="using:Files.App.Controls"
+    mc:Ignorable="d">
+
+    <files:SamplePanel Header="Files Controls Demo">
+        <files:SamplePanel.MainContent>
+            <StackPanel Spacing="20" Padding="20">
+
+                <TextBlock Text="Toolbar" Style="{ThemeResource TitleTextBlockStyle}" />
+                <files:Toolbar>
+                    <files:Toolbar.Items>
+                        <files:ToolbarItem ItemType="Button" Label="New" />
+                        <files:ToolbarItem ItemType="Button" Label="Open" />
+                        <files:ToolbarItem ItemType="Button" Label="Save" />
+                        <files:ToolbarItem ItemType="Separator" />
+                        <files:ToolbarItem ItemType="Button" Label="Settings" />
+                    </files:Toolbar.Items>
+                </files:Toolbar>
+
+                <TextBlock Text="BreadcrumbBar" Style="{ThemeResource TitleTextBlockStyle}" />
+                <files:BreadcrumbBar x:Name="BreadcrumbBarControl">
+                    <files:BreadcrumbBar.ItemTemplate>
+                        <DataTemplate>
+                            <files:BreadcrumbBarItem Content="{Binding}" />
+                        </DataTemplate>
+                    </files:BreadcrumbBar.ItemTemplate>
+                </files:BreadcrumbBar>
+
+                <TextBlock Text="StorageBar" Style="{ThemeResource TitleTextBlockStyle}" />
+                <files:StorageBar Value="75" Maximum="100" />
+
+                <TextBlock Text="ThemedIcon" Style="{ThemeResource TitleTextBlockStyle}" />
+                <files:ThemedIcon 
+                    FilledIconData="M10,10 L90,10 L90,90 L10,90 Z" 
+                    OutlineIconData="M10,10 L90,10 L90,90 L10,90 Z" 
+                    IconSize="32" />
+
+            </StackPanel>
+        </files:SamplePanel.MainContent>
+
+        <files:SamplePanel.SideContent>
+            <StackPanel Spacing="10" Padding="10">
+                <TextBlock Text="Side Content" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                <TextBlock Text="This is the side content area of the SamplePanel." TextWrapping="Wrap" />
+            </StackPanel>
+        </files:SamplePanel.SideContent>
+    </files:SamplePanel>
+</Page>

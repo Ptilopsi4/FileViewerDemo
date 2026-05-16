@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse -Depth 2 -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(Get-ChildItem -Recurse -Name D:\\\\Csharp\\\\FileViewerDemo)",
+      "Bash(Select-Object -First 80)"
+    ]
+  }
+}
